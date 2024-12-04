@@ -55,7 +55,7 @@
                             <td>Biro Kepegawaian</td>
                             <td>Administrator</td>
                             <td>Penata Muda - III/a</td>
-                            <td class="aksi">
+                            <td class="aksi d-flex flex-row gap-2">
                                 <a href="{{ route('pegawai.informasi-pribadi') }}" class="btn btn-primary btn-sm"><i class="fa-regular fa-eye"></i></a>
                                 <a href="#" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></a>
                             </td>

@@ -9,11 +9,17 @@
         </div>
         <div class="row mb-3">
             <div class="col-md-6">
-                <div class="input-group input-group-sm mb-3">
-                    <input type="text" class="form-control" placeholder="Cari Subkomisi" aria-label="Search"
-                        aria-describedby="button-addon2">
-                    <button class="btn btn-primary" type="button" id="button-addon2">Cari</button>
-                </div>
+                <form action="{{ route('subkomisi.index') }}" method="GET">
+                    @csrf
+                    <div class="input-group input-group-sm mb-3">
+                        <input type="text" class="form-control" name="search" id="searchInput" placeholder="Nama Subkomisi"
+                            value="{{ request('search') }}" aria-label="Search" aria-describedby="search"
+                            autocomplete="off">
+                        <button class="btn btn-primary" type="submit" id="searchBtn">
+                            <span id="searchIcon">{{ request('search') ? 'Hapus' : 'Cari' }}</span>
+                        </button>
+                    </div>
+                </form>
             </div>
             <div class="col-md-6 d-flex justify-content-end">
                 <div class="btn-wrapper">
@@ -23,6 +29,30 @@
                 </div>
             </div>
         </div>
+        {{-- Pesan Error --}}
+        @if (session()->has('success'))
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    Swal.fire({
+                        title: "Success!",
+                        text: "{{ session('success') }}",
+                        icon: "success",
+                        confirmButtonText: "OK"
+                    });
+                });
+            </script>
+        @elseif (session()->has('error'))
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    Swal.fire({
+                        title: "Error!",
+                        text: "{{ session('error') }}",
+                        icon: "error",
+                        confirmButtonText: "OK"
+                    });
+                });
+            </script>
+        @endif
         <div class="row">
             <div class="table-responsive">
                 <table id="data-table" class="table table-striped" style="width:100%">
@@ -30,26 +60,28 @@
                         <tr>
                             <th class="th-number">No</th>
                             <th>Nama Subkomisi</th>
-                            <th>Komisi</th>
+                            <th>Nama Komisi</th>
                             <th class="th-aksi">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @php
-                            $nomor = 1;
-                        @endphp
-                        <tr>
-                            <td>{{ $nomor++ }}</td>
-                            <td>Ketua Tim Penyensoran</td>
-                            <td>Sekretariat</td>
-                            <td class="aksi">
-                                <button type="button" class="btn btn-warning btn-sm" onclick="editSubkomisi()">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </button>
-                                <button type="button" class="btn btn-danger btn-sm"><i
-                                        class="fa-solid fa-trash"></i></button>
-                            </td>
-                        </tr>
+                        @foreach ($dataSubkomisi as $index => $subkomisi)
+                            <tr>
+                                <td>{{ $index + 1 }}</td>
+                                <td>{{ $subkomisi->nama_subkomisi }}</td>
+                                <td>{{ $subkomisi->komisi->nama_komisi }}</td>
+                                <td class="aksi d-flex flex-row gap-2">
+                                    <button type="button" class="btn btn-warning btn-sm"
+                                        onclick="editSubkomisi({{ $subkomisi->subkomisi_id }}, '{{ $subkomisi->nama_subkomisi }}')">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm"
+                                        onclick="deleteSubkomisi({{ $subkomisi->subkomisi_id }})">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        @endforeach
                     </tbody>
                 </table>
             </div>
@@ -64,73 +96,82 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Include ID for edit -->
-                    <form id="SubkomisiForm" action="/store" method="POST">
+                    <form id="SubkomisiForm" action="{{ route('subkomisi.storeOrUpdate') }}" method="POST">
                         @csrf
                         <input type="hidden" id="subkomisi_id" name="subkomisi_id">
-
+                    
                         <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="nama_subkomisi" placeholder="Nama Subkomisi"
-                                name="nama_subkomisi" required>
+                            <input type="text" class="form-control @error('nama_subkomisi') is-invalid @enderror" id="nama_subkomisi" name="nama_subkomisi" placeholder="Nama Subkomisi" value="{{ old('nama_subkomisi') }}" required>
                             <label for="nama_subkomisi">Nama Subkomisi</label>
+                            @error('nama_subkomisi')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
-                        <select class="form-select mb-3" aria-label="Default select example">
+                    
+                        <select class="form-select mb-3 @error('komisi_id') is-invalid @enderror" name="komisi_id" required>
                             <option selected disabled>Pilih Komisi</option>
-                            <option value="">Komisi I</option>
-                            <option value="2">Komisi II</option>
-                            <option value="3">Komisi III</option>
-                            <option value="3">Sekretariat</option>
+                            @foreach ($komisiList as $komisi)
+                                <option value="{{ $komisi->komisi_id }}" {{ old('komisi_id', $subkomisi->komisi_id ?? '') == $komisi->komisi_id ? 'selected' : '' }}>
+                                    {{ $komisi->nama_komisi }}
+                                </option>
+                            @endforeach
                         </select>
+                        @error('komisi_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </form>
+                    
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Kembali</button>
-                    <button type="submit" form="jabatanForm" class="btn btn-primary btn-sm" id="saveButton">Simpan</button>
+                    <button type="submit" form="SubkomisiForm" class="btn btn-primary btn-sm" id="saveButton">Simpan</button>
                 </div>
             </div>
         </div>
     </div>
 
+
     <script>
-        // Function to handle "Add Jabatan" button
+        // Function to handle "Add Subkomisi" button
         function addSubkomisi() {
-            // Clear form
+            // Reset form and modal for adding
             $('#SubkomisiForm').trigger('reset');
-
-            // Update modal title
-            $('#SubkomisiModalLabel').text('Tambah Daftar Subkomisi');
-
-            // Set form action for adding a new Subkomisi
-            $('#SubkomisiForm').attr('action', '/subkomisi/store');
-
-            // Hide the hidden ID field
             $('#subkomisi_id').val('');
-
-            // Update button text
+            $('#SubkomisiModalLabel').text('Tambah Daftar Subkomisi');
             $('#saveButton').text('Simpan');
-
-            // Show modal
             $('#SubkomisiModal').modal('show');
         }
 
-        // Function to handle "Edit Jabatan" button
-        function editSubkomisi(id, nama, golongan) {
-            // Pre-fill form with existing data
-            $('#pangkat_id').val(id);
-            $('#nama_pangkat').val(nama);
-            $('#golongna').val(golongan);
-
-            // Update modal title
+        // Function to handle "Edit Subkomisi" button
+        function editSubkomisi(subkomisi_id, nama_subkomisi, komisi_id) {
+            // Pre-fill form for editing
+            $('#subkomisi_id').val(subkomisi_id);
+            $('#nama_subkomisi').val(nama_subkomisi);
+            $('#komisi_id').val(komisi_id);
             $('#SubkomisiModalLabel').text('Edit Daftar Subkomisi');
-
-            // Set form action for updating Subkomisi
-            $('#SubkomisiForm').attr('action', '/subkomisi/update/' + id);
-
-            // Update button text
-            $('#saveButton').text('Update');
-
-            // Show modal
+            $('#saveButton').text('Ubah');
             $('#SubkomisiModal').modal('show');
+        }
+
+
+        function deleteSubkomisi(subkomisi_id) {
+            // Show SweetAlert confirmation dialog
+            Swal.fire({
+                title: "Apakah anda yakin?",
+                text: "Menghapus data secara permanen",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Ya, Hapus!",
+                cancelButtonText: "Batal",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Perform the delete action by redirecting to the destroy route
+                    window.location.href = '/dashboard/master/subkomisi/destroy/' + subkomisi_id;
+                }
+            });
         }
     </script>
 @endsection

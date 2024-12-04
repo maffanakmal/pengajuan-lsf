@@ -91,8 +91,8 @@
                     <img src="{{ asset('img/Affan.png') }}" alt="profile" width="38" height="38"
                         class="rounded" style="object-fit: cover">
                     <div class="ms-2">
-                        <p class="mb-0 text-white">Muhamad Affan Akmal</p>
-                        <small class="text-white">Mahasiswa</small>
+                        <p class="mb-0 text-white">Admin</p>
+                        <small class="text-white">Admin</small>
                     </div>
                 </div>
             </div>

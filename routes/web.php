@@ -1,8 +1,14 @@
 <?php
 
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\LandingPageController;
+use App\Models\Unitkerja;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\KomisiController;
+use App\Http\Controllers\JabatanController;
+use App\Http\Controllers\PangkatController;
+use App\Http\Controllers\SubkomisiController;
+use App\Http\Controllers\UnitkerjaController;
+use App\Http\Controllers\LandingPageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,35 +37,26 @@ Route::get('/dashboard/master', function () {
 })->name('dashboard');
 
 // MASTER DATA
-Route::get('/dashboard/master/komisi', function () {
-    return view('komisi.index', [
-        'title' => 'Komisi',
-    ]);
-})->name('komisi.index');
+Route::get('/dashboard/master/komisi', [KomisiController::class, 'index'])->name('komisi.index');
+Route::post('/dashboard/master/komisi/store-or-update', [KomisiController::class, 'storeOrUpdate'])->name('komisi.storeOrUpdate');
+Route::get('/dashboard/master/komisi/destroy/{id}', [KomisiController::class, 'destroy'])->name('komisi.destroy');
 
-Route::get('/dashboard/master/subkomisi', function () {
-    return view('subkomisi.index', [
-        'title' => 'Subkomisi',
-    ]);
-})->name('subkomisi.index');
+Route::get('/dashboard/master/subkomisi', [SubkomisiController::class, 'index'])->name('subkomisi.index');
+Route::post('/dashboard/master/subkomisi/store-or-update', [SubkomisiController::class, 'storeOrUpdate'])->name('subkomisi.storeOrUpdate');
+Route::get('/dashboard/master/subkomisi/destroy/{id}', [SubkomisiController::class, 'destroy'])->name('subkomisi.destroy');
 
-Route::get('/dashboard/master/jabatan', function () {
-    return view('jabatan.index', [
-        'title' => 'Jabatan',
-    ]);
-})->name('jabatan.index');
+Route::get('/dashboard/master/pangkat', [PangkatController::class, 'index'])->name('pangkat.index');
+Route::post('/dashboard/master/pangkat/store-or-update', [PangkatController::class, 'storeOrUpdate'])->name('pangkat.storeOrUpdate');
+Route::get('/dashboard/master/pangkat/destroy/{id}', [PangkatController::class, 'destroy'])->name('pangkat.destroy');
 
-Route::get('/dashboard/master/pangkat', function () {
-    return view('pangkat.index', [
-        'title' => 'Pangkat',
-    ]);
-})->name('pangkat.index');
+Route::get('/dashboard/master/jabatan', [JabatanController::class, 'index'])->name('jabatan.index');
+Route::post('/dashboard/master/jabatan/store-or-update', [JabatanController::class, 'storeOrUpdate'])->name('jabatan.storeOrUpdate');
+Route::get('/dashboard/master/jabatan/destroy/{id}', [JabatanController::class, 'destroy'])->name('jabatan.destroy');
 
-Route::get('/dashboard/master/unitkerja', function () {
-    return view('unit-kerja.index', [
-        'title' => 'Unit Kerja',
-    ]);
-})->name('unit-kerja.index');
+Route::get('/dashboard/master/unit-kerja', [UnitkerjaController::class, 'index'])->name('unit-kerja.index');
+Route::post('/dashboard/master/unit-kerja/store-or-update', [UnitkerjaController::class, 'storeOrUpdate'])->name('unit-kerja.storeOrUpdate');
+Route::get('/dashboard/master/unit-kerja/destroy/{id}', [UnitkerjaController::class, 'destroy'])->name('unit-kerja.destroy');
+
 
 Route::get('/dashboard/pegawai', function () {
     return view('pegawai.layouts.index', [

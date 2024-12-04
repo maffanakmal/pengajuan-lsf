@@ -2,25 +2,25 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 
-class Komisi extends Model
+class Pangkat extends Model
 {
     use HasFactory;
 
-    protected $table = 'komisi';
+    protected $table = 'pangkat';
 
-    protected $primaryKey = 'komisi_id';
+    protected $primaryKey = 'pangkat_id';
 
     protected $guarded = [];
 
     public function scopeFilter(Builder $query, array $filters): void 
     {
         $query->when(isset($filters['search']) ?? false, function($query) {
-            $query->where('nama_komisi', 'like', '%' . request('search') . '%')
-            ->orWhere('komisi_id', 'like', '%' . request('search') . '%');
+            $query->where('nama_pangkat', 'like', '%' . request('search') . '%')
+            ->orWhere('golongan', 'like', '%' . request('search') . '%');
         });
     }
 }

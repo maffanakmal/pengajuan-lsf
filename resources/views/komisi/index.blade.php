@@ -9,11 +9,17 @@
         </div>
         <div class="row mb-3">
             <div class="col-md-6">
-                <div class="input-group input-group-sm mb-3">
-                    <input type="text" class="form-control" placeholder="Cari Komisi" aria-label="Search"
-                        aria-describedby="button-addon2">
-                    <button class="btn btn-primary" type="button" id="button-addon2">Cari</button>
-                </div>
+                <form action="{{ route('komisi.index') }}" method="GET">
+                    @csrf
+                    <div class="input-group input-group-sm mb-3">
+                        <input type="text" class="form-control" name="search" id="searchInput" placeholder="Nama Komisi"
+                            value="{{ request('search') }}" aria-label="Search" aria-describedby="search"
+                            autocomplete="off">
+                        <button class="btn btn-primary" type="submit" id="searchBtn">
+                            <span id="searchIcon">{{ request('search') ? 'Hapus' : 'Cari' }}</span>
+                        </button>
+                    </div>
+                </form>
             </div>
             <div class="col-md-6 d-flex justify-content-end">
                 <div class="btn-wrapper">
@@ -23,6 +29,30 @@
                 </div>
             </div>
         </div>
+        {{-- Pesan Error --}}
+        @if (session()->has('success'))
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    Swal.fire({
+                        title: "Success!",
+                        text: "{{ session('success') }}",
+                        icon: "success",
+                        confirmButtonText: "OK"
+                    });
+                });
+            </script>
+        @elseif (session()->has('error'))
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    Swal.fire({
+                        title: "Error!",
+                        text: "{{ session('error') }}",
+                        icon: "error",
+                        confirmButtonText: "OK"
+                    });
+                });
+            </script>
+        @endif
         <div class="row">
             <div class="table-responsive">
                 <table id="data-table" class="table table-striped" style="width:100%">
@@ -34,21 +64,22 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @php
-                            $nomor = 1;
-                        @endphp
-                        <tr>
-                            <td>{{ $nomor++ }}</td>
-                            <td>Komisi I</td>
-                            <td class="aksi">
-                                <button type="button" class="btn btn-warning btn-sm"
-                                    onclick="editKomisi()">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </button>
-                                <button type="button" class="btn btn-danger btn-sm"><i
-                                        class="fa-solid fa-trash"></i></button>
-                            </td>
-                        </tr>
+                        @foreach ($dataKomisi as $index => $komisi)
+                            <tr>
+                                <td>{{ $index + 1 }}</td>
+                                <td>{{ $komisi->nama_komisi }}</td>
+                                <td class="aksi d-flex flex-row gap-2">
+                                    <button type="button" class="btn btn-warning btn-sm"
+                                        onclick="editKomisi({{ $komisi->komisi_id }}, '{{ $komisi->nama_komisi }}')">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm"
+                                        onclick="deleteKomisi({{ $komisi->komisi_id }})">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        @endforeach
                     </tbody>
                 </table>
             </div>
@@ -63,67 +94,67 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Include ID for edit -->
-                    <form id="KomisiForm" action="/store" method="POST">
+                    <form id="KomisiForm" action="{{ route('komisi.storeOrUpdate') }}" method="POST">
                         @csrf
                         <input type="hidden" id="komisi_id" name="komisi_id">
 
                         <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="nama_komisi" placeholder="Nama Komisi"
-                                name="nama_komisi" required>
+                            <input type="text" class="form-control @error('nama_komisi') is-invalid @enderror"
+                                id="nama_komisi" name="nama_komisi" placeholder="Nama Komisi" required>
                             <label for="nama_komisi">Nama Komisi</label>
+                            @error('nama_komisi')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Kembali</button>
-                    <button type="submit" form="jabatanForm" class="btn btn-primary btn-sm"
-                        id="saveButton">Simpan</button>
+                    <button type="submit" form="KomisiForm" class="btn btn-primary btn-sm" id="saveButton">Simpan</button>
                 </div>
             </div>
         </div>
     </div>
 
+
     <script>
         // Function to handle "Add Jabatan" button
         function addKomisi() {
-            // Clear form
+            // Reset form and modal for adding
             $('#KomisiForm').trigger('reset');
-
-            // Update modal title
-            $('#KomisiModalLabel').text('Tambah Daftar Komisi');
-
-            // Set form action for adding a new Komisi
-            $('#KomisiForm').attr('action', '/komisi/store');
-
-            // Hide the hidden ID field
             $('#komisi_id').val('');
-
-            // Update button text
+            $('#KomisiModalLabel').text('Tambah Daftar Komisi');
             $('#saveButton').text('Simpan');
-
-            // Show modal
             $('#KomisiModal').modal('show');
         }
 
         // Function to handle "Edit Jabatan" button
-        function editKomisi(id, nama, golongan) {
-            // Pre-fill form with existing data
-            $('#pangkat_id').val(id);
-            $('#nama_pangkat').val(nama);
-            $('#golongna').val(golongan);
-
-            // Update modal title
+        function editKomisi(komisi_id, nama_komisi) {
+            // Pre-fill form for editing
+            $('#komisi_id').val(komisi_id);
+            $('#nama_komisi').val(nama_komisi);
             $('#KomisiModalLabel').text('Edit Daftar Komisi');
-
-            // Set form action for updating Komisi
-            $('#KomisiForm').attr('action', '/komisi/update/' + id);
-
-            // Update button text
-            $('#saveButton').text('Update');
-
-            // Show modal
+            $('#saveButton').text('Komisi');
             $('#KomisiModal').modal('show');
+        }
+
+        function deleteKomisi(komisi_id) {
+            // Show SweetAlert confirmation dialog
+            Swal.fire({
+                title: "Apakah anda yakin?",
+                text: "Menghapus data secara permanen",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Ya, Hapus!",
+                cancelButtonText: "Batal",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Perform the delete action by redirecting to the destroy route
+                    window.location.href = '/dashboard/master/komisi/destroy/' + komisi_id;
+                }
+            });
         }
     </script>
 @endsection

@@ -12,54 +12,45 @@ class KomisiController extends Controller
      */
     public function index()
     {
-        //
+        $dataKomisi = Komisi::filter(request(['search']))->paginate(10);
+
+        return view('komisi.index', [
+            'title' => 'Komisi',
+        ], compact('dataKomisi'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created resource in storage or update an existing one.
      */
-    public function store(Request $request)
+    public function storeOrUpdate(Request $request)
     {
-        //
-    }
+        // Validate input
+        $validated = $request->validate([
+            'nama_komisi' => 'required|string|max:255',
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Komisi $komisi)
-    {
-        //
-    }
+        // Check if it's an update or create
+        if ($request->has('komisi_id') && $request->komisi_id) {
+            // Update existing Komisi
+            $komisi = Komisi::findOrFail($request->komisi_id);
+            $komisi->update($validated);
+        } else {
+            // Create new Komisi
+            Komisi::create($validated);
+        }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Komisi $komisi)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Komisi $komisi)
-    {
-        //
+        return redirect()->route('komisi.index')->with('success', 'Data berhasil disimpan!');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Komisi $komisi)
+    public function destroy($id)
     {
-        //
+        $komisi = Komisi::findOrFail($id);
+        $komisi->delete();
+
+        return redirect()->route('komisi.index')->with('success', 'Data berhasil dihapus!');
     }
 }
